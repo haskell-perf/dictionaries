@@ -1,19 +1,12 @@
-# Sequences
+# Dictionaries
 
-In computer science, a list or sequence is an abstract data type
-that represents a countable number of ordered values, where the same
-value may occur more than once. An instance of a list is a computer
-representation of the mathematical concept of a finite sequence.
+In computer science, an associative array, map, symbol table, or dictionary is an abstract data type composed of a collection of (key, value) pairs, such that each possible key appears at most once in the collection.
 
-From [Wikipedia](https://en.wikipedia.org/wiki/List_(abstract_data_type)).
+From [Wikipedia](https://en.wikipedia.org/wiki/Associative_array).
 
 ## Running
 
 For all benchmarks:
-
-    $ stack bench :space
-
-For specific benchmarks:
 
     $ stack bench :space
 
