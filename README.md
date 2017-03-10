@@ -18,7 +18,7 @@ For just time:
 
     $ stack bench :time
 
-## InsertInt
+## Insert Int keys
 
 ```
 Case                                              Bytes    GCs  Check
@@ -156,7 +156,7 @@ std dev              86.84 μs   (40.09 μs .. 168.2 μs)
 variance introduced by outliers: 31% (moderately inflated)
 ```
 
-## From Int List
+## From List Int keys
 
 ```
 Case                                              Bytes    GCs  Check
@@ -166,4 +166,155 @@ Data.IntMap.Strict.fromList  (1 million)    776,852,648  1,489  OK
 Data.IntMap.Lazy.fromList    (1 million)    776,852,648  1,489  OK
 Data.HashMap.Strict.fromList (1 million)    161,155,384    314  OK
 Data.HashMap.Lazy.fromList   (1 million)    161,155,384    314  OK
+```
+
+## From List ByteString keys (monotonic)
+
+The keys are numbers 1..10000 increasing, which gives "regular" keys,
+offering an advantage to a trie data structure.
+
+```
+benchmarking FromListByteStringMonotonic/Data.Map.Lazy 0..10000
+time                 6.081 ms   (6.001 ms .. 6.148 ms)
+                     0.999 R²   (0.999 R² .. 0.999 R²)
+mean                 6.162 ms   (6.120 ms .. 6.219 ms)
+std dev              152.6 μs   (119.6 μs .. 232.6 μs)
+
+benchmarking FromListByteStringMonotonic/Data.Map.Strict 0..10000
+time                 6.509 ms   (6.408 ms .. 6.611 ms)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 6.505 ms   (6.451 ms .. 6.575 ms)
+std dev              178.7 μs   (139.0 μs .. 227.1 μs)
+variance introduced by outliers: 10% (moderately inflated)
+
+benchmarking FromListByteStringMonotonic/Data.HashMap.Lazy 0..10000
+time                 3.250 ms   (3.183 ms .. 3.304 ms)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 3.202 ms   (3.174 ms .. 3.241 ms)
+std dev              106.7 μs   (87.50 μs .. 133.1 μs)
+variance introduced by outliers: 17% (moderately inflated)
+
+benchmarking FromListByteStringMonotonic/Data.HashMap.Strict 0..10000
+time                 3.245 ms   (3.198 ms .. 3.298 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 3.254 ms   (3.223 ms .. 3.289 ms)
+std dev              107.3 μs   (82.26 μs .. 136.6 μs)
+variance introduced by outliers: 16% (moderately inflated)
+
+benchmarking FromListByteStringMonotonic/Data.Trie 0..10000
+time                 15.20 ms   (15.01 ms .. 15.37 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 15.45 ms   (15.32 ms .. 15.59 ms)
+std dev              343.1 μs   (257.2 μs .. 453.6 μs)
+```
+
+## From List ByteString keys (randomized)
+
+Keys are random numbers, a trie may yield worse performance the more
+random the keys are.
+
+```
+benchmarking FromListByteStringRandomized/Data.Map.Lazy 0..10
+time                 821.1 ns   (812.8 ns .. 830.3 ns)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 820.2 ns   (814.2 ns .. 829.9 ns)
+std dev              25.32 ns   (19.41 ns .. 33.41 ns)
+variance introduced by outliers: 43% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Map.Strict 0..10
+time                 881.1 ns   (875.0 ns .. 887.6 ns)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 884.9 ns   (879.4 ns .. 893.5 ns)
+std dev              22.93 ns   (17.52 ns .. 31.96 ns)
+variance introduced by outliers: 35% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Lazy 0..10
+time                 814.4 ns   (808.7 ns .. 820.9 ns)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 816.8 ns   (812.0 ns .. 823.6 ns)
+std dev              18.24 ns   (14.08 ns .. 21.98 ns)
+variance introduced by outliers: 28% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Strict 0..10
+time                 854.1 ns   (847.8 ns .. 861.0 ns)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 857.9 ns   (850.7 ns .. 867.4 ns)
+std dev              27.76 ns   (21.83 ns .. 35.41 ns)
+variance introduced by outliers: 45% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Trie 0..10
+time                 1.238 μs   (1.211 μs .. 1.264 μs)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 1.218 μs   (1.207 μs .. 1.236 μs)
+std dev              46.38 ns   (35.85 ns .. 60.34 ns)
+variance introduced by outliers: 53% (severely inflated)
+
+benchmarking FromListByteStringRandomized/Data.Map.Lazy 0..1000
+time                 358.2 μs   (355.9 μs .. 360.3 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 355.5 μs   (353.9 μs .. 357.7 μs)
+std dev              6.422 μs   (4.688 μs .. 10.13 μs)
+variance introduced by outliers: 10% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Map.Strict 0..1000
+time                 378.9 μs   (376.4 μs .. 381.6 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 382.5 μs   (379.4 μs .. 387.2 μs)
+std dev              12.72 μs   (9.445 μs .. 17.87 μs)
+variance introduced by outliers: 27% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Lazy 0..1000
+time                 144.8 μs   (143.9 μs .. 145.9 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 144.7 μs   (143.9 μs .. 146.2 μs)
+std dev              3.996 μs   (1.739 μs .. 6.579 μs)
+variance introduced by outliers: 24% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Strict 0..1000
+time                 148.4 μs   (146.9 μs .. 149.8 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 147.2 μs   (146.5 μs .. 148.4 μs)
+std dev              3.305 μs   (2.319 μs .. 4.827 μs)
+variance introduced by outliers: 17% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Trie 0..1000
+time                 1.187 ms   (1.178 ms .. 1.197 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 1.198 ms   (1.190 ms .. 1.210 ms)
+std dev              31.13 μs   (25.08 μs .. 39.37 μs)
+variance introduced by outliers: 14% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Map.Lazy 0..10000
+time                 8.654 ms   (8.528 ms .. 8.789 ms)
+                     0.997 R²   (0.994 R² .. 0.999 R²)
+mean                 8.869 ms   (8.746 ms .. 9.095 ms)
+std dev              478.0 μs   (276.3 μs .. 772.7 μs)
+variance introduced by outliers: 27% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Map.Strict 0..10000
+time                 8.876 ms   (8.733 ms .. 9.024 ms)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 9.059 ms   (8.975 ms .. 9.202 ms)
+std dev              302.7 μs   (187.8 μs .. 530.6 μs)
+variance introduced by outliers: 12% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Lazy 0..10000
+time                 3.617 ms   (3.595 ms .. 3.643 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 3.671 ms   (3.649 ms .. 3.706 ms)
+std dev              90.24 μs   (61.66 μs .. 140.4 μs)
+variance introduced by outliers: 10% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.HashMap.Strict 0..10000
+time                 3.735 ms   (3.682 ms .. 3.782 ms)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 3.749 ms   (3.709 ms .. 3.787 ms)
+std dev              128.4 μs   (103.7 μs .. 163.3 μs)
+variance introduced by outliers: 17% (moderately inflated)
+
+benchmarking FromListByteStringRandomized/Data.Trie 0..10000
+time                 23.94 ms   (23.62 ms .. 24.34 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 24.63 ms   (24.34 ms .. 25.09 ms)
+std dev              779.2 μs   (521.1 μs .. 1.177 ms)
 ```
