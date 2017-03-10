@@ -25,7 +25,7 @@ data FromListBS =
             FromListBS String
                      ([(ByteString,Int)] -> f Int)
 
--- | TODO: We need a proper deepseq.
+-- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
   rnf x = seq x ()
 
