@@ -1,0 +1,21 @@
+name:                bench
+version:             0
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  build-depends: base
+  default-language: Haskell2010
+
+test-suite space
+  default-language:    Haskell2010
+  type: exitcode-stdio-1.0
+  ghc-options: -O2
+  main-is: Space.hs
+  build-depends: base
+               , weigh
+               , deepseq
+               , containers
+               , unordered-containers
+               , bytestring-trie
+               , random
