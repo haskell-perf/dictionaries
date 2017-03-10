@@ -19,3 +19,18 @@ test-suite space
                , unordered-containers
                , bytestring-trie
                , random
+
+benchmark time
+  default-language: Haskell2010
+  type: exitcode-stdio-1.0
+  ghc-options:       -Wall -O2 -rtsopts
+  main-is:           Time.hs
+  build-depends:     base
+                   , bytestring
+                   , ghc-prim
+                   , criterion
+                   , deepseq
+                   , containers
+                   , unordered-containers
+                   , bytestring-trie
+                   , random
