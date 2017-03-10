@@ -19,7 +19,7 @@ main :: IO ()
 main =
   defaultMain
     [ bgroup
-        "Consing"
+        "InsertInt"
         (conses
            [ Insert "Data.Map.Lazy" insertMapLazy
            , Insert "Data.Map.Strict" insertMapStrict
