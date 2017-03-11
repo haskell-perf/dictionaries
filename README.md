@@ -20,18 +20,18 @@ For just time:
 
 ## Insert Int keys
 
-```
+
 |Case|                                              Bytes|    GCs|
 |---|---|---|
 |Data.Map.Strict.insert mempty                        |64      |0  |
 |Data.Map.Lazy.insert mempty                          |64      |0  |
 |Data.HashMap.Strict.insert mempty                    |64      |0  |
 |Data.HashMap.Lazy.insert mempty                      |48      |0  |
-```
+
 
 ## From List Int keys
 
-```
+
 |Case|                                              Bytes|    GCs|
 |---|---|---|
 |Data.Map.Strict.fromList     (1 million)|  1,016,187,152  |1,942  |
@@ -40,7 +40,7 @@ For just time:
 |Data.IntMap.Lazy.fromList    (1 million)|    776,852,648  |1,489  |
 |Data.HashMap.Strict.fromList (1 million)|    161,155,384    |314  |
 |Data.HashMap.Lazy.fromList   (1 million)|    161,155,384    |314  |
-```
+
 
 <!-- RESULTS -->
 
