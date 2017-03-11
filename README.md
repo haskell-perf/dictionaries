@@ -44,6 +44,17 @@ For just time:
 
 <!-- RESULTS -->
 
+## Lookup Int (Randomized)
+
+|Name|10|100|1000|10000|
+|---|---|---|---|---|
+|Data.Map.Lazy|26.62 ns|34.21 ns|43.12 ns|55.55 ns|
+|Data.Map.Strict|26.49 ns|34.15 ns|42.73 ns|56.03 ns|
+|Data.HashMap.Lazy|22.03 ns|23.70 ns|17.96 ns|24.86 ns|
+|Data.HashMap.Strict|21.05 ns|23.71 ns|17.80 ns|24.95 ns|
+|Data.IntMap.Lazy|17.17 ns|25.39 ns|32.74 ns|43.08 ns|
+|Data.IntMap.Strict|16.93 ns|25.42 ns|32.93 ns|42.92 ns|
+
 ## Insert Int (Randomized)
 
 |Name|10|100|1000|10000|

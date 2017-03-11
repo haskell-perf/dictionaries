@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE BangPatterns #-}
@@ -28,6 +29,12 @@ data FromListBS =
             FromListBS String
                      ([(ByteString,Int)] -> f Int)
 
+data Lookup =
+  forall f. (NFData (f Int)) =>
+            Lookup String
+                   ([(Int, Int)] -> f Int)
+                   (Int -> f Int ->  (Maybe Int))
+
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
   rnf x = seq x ()
@@ -48,6 +55,31 @@ main = do
            , InsertInt "Data.HashMap.Strict" insertHashMapStrict
            , InsertInt "Data.IntMap.Lazy" insertIntMapLazy
            , InsertInt "Data.IntMap.Strict" insertIntMapStrict
+           ])
+    , bgroup
+        "Lookup Int (Randomized)"
+        (lookupRandomized
+           [ Lookup "Data.Map.Lazy" Data.Map.Lazy.fromList Data.Map.Lazy.lookup
+           , Lookup
+               "Data.Map.Strict"
+               Data.Map.Strict.fromList
+               Data.Map.Strict.lookup
+           , Lookup
+               "Data.HashMap.Lazy"
+               Data.HashMap.Lazy.fromList
+               Data.HashMap.Lazy.lookup
+           , Lookup
+               "Data.HashMap.Strict"
+               Data.HashMap.Strict.fromList
+               Data.HashMap.Strict.lookup
+           , Lookup
+               "Data.IntMap.Lazy"
+               Data.IntMap.Lazy.fromList
+               Data.IntMap.Lazy.lookup
+           , Lookup
+               "Data.IntMap.Strict"
+               Data.IntMap.Strict.fromList
+               Data.IntMap.Strict.lookup
            ])
     , bgroup
         "FromList ByteString (Monotonic)"
@@ -90,10 +122,20 @@ main = do
       | i <- [10, 100, 1000, 10000]
       , FromListBS title func <- funcs
       ]
+    lookupRandomized funcs =
+      [ env
+        (let !elems =
+               force
+                 (fromList (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
+         in pure elems)
+        (\elems -> bench (title ++ ":" ++ show i) $ nf (flip func elems) (div i 2))
+      | i <- [10, 100, 1000, 10000]
+      , Lookup title fromList func <- funcs
+      ]
     insertBSMonotonic funcs =
       [ env
         (let !elems =
-               force (map (first (S8.pack . show)) (take i (zip [1 ..] [1 ..])))
+               force (map (first (S8.pack . show)) (take i (zip [1 :: Int ..] [1 ..])))
          in pure elems)
         (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
       | i <- [10000]
