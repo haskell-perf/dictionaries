@@ -28,6 +28,9 @@ data FromListBS =
             FromListBS String
                      ([(ByteString,Int)] -> f Int)
 
+data Intersection = forall f. NFData (f Int) =>
+     Intersection String ([(Int,Int)] -> f Int) (f Int -> f Int -> f Int)
+
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
   rnf x = seq x ()
@@ -48,6 +51,16 @@ main = do
            , InsertInt "Data.HashMap.Strict" insertHashMapStrict
            , InsertInt "Data.IntMap.Lazy" insertIntMapLazy
            , InsertInt "Data.IntMap.Strict" insertIntMapStrict
+           ])
+    , bgroup
+        "Intersection (Randomized)"
+        (intersection
+           [ Intersection "Data.Map.Lazy" Data.Map.Lazy.fromList Data.Map.Lazy.intersection
+           , Intersection "Data.Map.Strict" Data.Map.Strict.fromList Data.Map.Strict.intersection
+           , Intersection "Data.HashMap.Lazy" Data.HashMap.Lazy.fromList Data.HashMap.Lazy.intersection
+           , Intersection "Data.HashMap.Strict" Data.HashMap.Strict.fromList Data.HashMap.Strict.intersection
+           , Intersection "Data.IntMap.Lazy" Data.IntMap.Lazy.fromList Data.IntMap.Lazy.intersection
+           , Intersection "Data.IntMap.Strict" Data.IntMap.Strict.fromList Data.IntMap.Strict.intersection
            ])
     , bgroup
         "FromList ByteString (Monotonic)"
@@ -77,6 +90,17 @@ main = do
         (\_ -> bench (title ++ ":" ++ show i) $ nf func i)
       | i <- [10, 100, 1000, 10000]
       , InsertInt title func <- funcs
+      ]
+    intersection funcs =
+      [ env
+        (let !args =
+               force ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
+                     , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
+                     )
+         in  pure args)
+        (\ args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
+      | i <- [10, 100, 1000, 10000]
+      , Intersection title build intersect <- funcs
       ]
     insertBSRandomized funcs =
       [ env
