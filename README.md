@@ -44,6 +44,17 @@ For just time:
 
 <!-- RESULTS -->
 
+## Intersection (Randomized)
+
+|Name|10|100|1000|10000|
+|---|---|---|---|---|
+|Data.Map.Lazy|1220 ns|13.50 μs|156.6 μs|1620 μs|
+|Data.Map.Strict|1216 ns|13.62 μs|157.3 μs|1632 μs|
+|Data.HashMap.Lazy|266.9 ns|2.306 μs|30.66 μs|366.2 μs|
+|Data.HashMap.Strict|264.8 ns|2.322 μs|30.58 μs|366.5 μs|
+|Data.IntMap.Lazy|117.2 ns|0.675 μs|7.665 μs|161.1 μs|
+|Data.IntMap.Strict|116.7 ns|0.678 μs|7.747 μs|152.3 μs|
+
 ## Lookup Int (Randomized)
 
 |Name|10|100|1000|10000|
