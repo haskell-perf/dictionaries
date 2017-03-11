@@ -6,7 +6,9 @@ module Main (main) where
 
 import           Control.Arrow
 import           Control.DeepSeq
+import           Control.Monad
 import           Criterion.Main
+import           Criterion.Types
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.HashMap.Lazy
@@ -16,6 +18,7 @@ import qualified Data.IntMap.Strict
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import qualified Data.Trie
+import           System.Directory
 import           System.Random
 
 data InsertInt = forall f. NFData (f Int) => InsertInt String (Int -> f Int)
@@ -30,10 +33,14 @@ instance NFData (Data.Trie.Trie a) where
   rnf x = seq x ()
 
 main :: IO ()
-main =
-  defaultMain
+main = do
+  let fp = "out.csv"
+  exists <- doesFileExist fp
+  when exists (removeFile fp)
+  defaultMainWith
+    defaultConfig {csvFile = Just fp}
     [ bgroup
-        "InsertInt"
+        "Insert Int (Randomized)"
         (insertInts
            [ InsertInt "Data.Map.Lazy" insertMapLazy
            , InsertInt "Data.Map.Strict" insertMapStrict
@@ -43,23 +50,23 @@ main =
            , InsertInt "Data.IntMap.Strict" insertIntMapStrict
            ])
     , bgroup
-        "FromListByteStringMonotonic"
+        "FromList ByteString (Monotonic)"
         (insertBSMonotonic
-           [ FromListBS "Data.Map.Lazy"Data.Map.Lazy.fromList
+           [ FromListBS "Data.Map.Lazy" Data.Map.Lazy.fromList
            , FromListBS "Data.Map.Strict" Data.Map.Strict.fromList
            , FromListBS "Data.HashMap.Lazy" Data.HashMap.Lazy.fromList
            , FromListBS "Data.HashMap.Strict" Data.HashMap.Strict.fromList
            , FromListBS "Data.Trie" Data.Trie.fromList
            ])
-    ,  bgroup
-         "FromListByteStringRandomized"
-         (insertBSRandomized
-            [ FromListBS "Data.Map.Lazy"Data.Map.Lazy.fromList
-            , FromListBS "Data.Map.Strict" Data.Map.Strict.fromList
-            , FromListBS "Data.HashMap.Lazy" Data.HashMap.Lazy.fromList
-            , FromListBS "Data.HashMap.Strict" Data.HashMap.Strict.fromList
-            , FromListBS "Data.Trie" Data.Trie.fromList
-            ])
+    , bgroup
+        "FromList ByteString (Randomized)"
+        (insertBSRandomized
+           [ FromListBS "Data.Map.Lazy" Data.Map.Lazy.fromList
+           , FromListBS "Data.Map.Strict" Data.Map.Strict.fromList
+           , FromListBS "Data.HashMap.Lazy" Data.HashMap.Lazy.fromList
+           , FromListBS "Data.HashMap.Strict" Data.HashMap.Strict.fromList
+           , FromListBS "Data.Trie" Data.Trie.fromList
+           ])
     ]
   where
     insertInts funcs =
@@ -67,27 +74,28 @@ main =
         (let !elems =
                force (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
          in pure elems)
-        (\_ -> bench (title ++ " 0.." ++ show i) $ nf func i)
-      | i <- [10, 1000, 10000]
+        (\_ -> bench (title ++ ":" ++ show i) $ nf func i)
+      | i <- [10, 100, 1000, 10000]
       , InsertInt title func <- funcs
       ]
     insertBSRandomized funcs =
       [ env
         (let !elems =
                force
-                 (map (first (S8.pack . show)) (take i (zip (randoms (mkStdGen 0) :: [Int]) [1..])))
+                 (map
+                    (first (S8.pack . show))
+                    (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
          in pure elems)
-        (\elems -> bench (title ++ " 0.." ++ show i) $ nf func elems)
-      | i <- [10, 1000, 10000]
+        (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
+      | i <- [10, 100, 1000, 10000]
       , FromListBS title func <- funcs
       ]
     insertBSMonotonic funcs =
       [ env
         (let !elems =
-               force
-                 (map (first (S8.pack . show)) (take i (zip [1..] [1..])))
+               force (map (first (S8.pack . show)) (take i (zip [1 ..] [1 ..])))
          in pure elems)
-        (\elems -> bench (title ++ " 0.." ++ show i) $ nf func elems)
+        (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
       | i <- [10000]
       , FromListBS title func <- funcs
       ]
