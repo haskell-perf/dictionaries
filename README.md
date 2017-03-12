@@ -1,8 +1,6 @@
-# Dictionaries
+# dictionaries
 
-In computer science, an associative array, map, symbol table, or dictionary is an abstract data type composed of a collection of (key, value) pairs, such that each possible key appears at most once in the collection.
-
-From [Wikipedia](https://en.wikipedia.org/wiki/Associative_array).
+Benchmarks for dictionary data structures: hash tables, maps, tries, etc.
 
 ## Running
 
