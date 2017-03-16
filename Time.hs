@@ -14,8 +14,13 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.HashMap.Lazy
 import qualified Data.HashMap.Strict
+import qualified Data.HashTable.IO
+import qualified Data.HashTable.ST.Basic
+import qualified Data.HashTable.ST.Cuckoo
+import qualified Data.HashTable.ST.Linear
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
+import qualified Data.Judy
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import qualified Data.Trie
@@ -23,6 +28,8 @@ import           System.Directory
 import           System.Random
 
 data InsertInt = forall f. NFData (f Int) => InsertInt String (Int -> f Int)
+
+data InsertIntIO = forall d. NFData d => InsertIntIO String (Int -> IO d)
 
 data FromListBS =
   forall f. NFData (f Int) =>
@@ -38,8 +45,23 @@ data Lookup =
                    ([(Int, Int)] -> f Int)
                    (Int -> f Int ->  (Maybe Int))
 
+data LookupIO = 
+  forall d. NFData d => LookupIO String ([(Int,Int)] -> IO d) (d -> Int -> IO (Maybe Int))
+
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
+  rnf x = seq x ()
+
+instance NFData (Data.HashTable.ST.Basic.HashTable s k v) where
+  rnf x = seq x ()
+
+instance NFData (Data.HashTable.ST.Cuckoo.HashTable s k v) where
+  rnf x = seq x ()
+
+instance NFData (Data.HashTable.ST.Linear.HashTable s k v) where
+  rnf x = seq x ()
+
+instance NFData (Data.Judy.JudyL v) where
   rnf x = seq x ()
 
 main :: IO ()
@@ -58,6 +80,14 @@ main = do
            , InsertInt "Data.HashMap.Strict" insertHashMapStrict
            , InsertInt "Data.IntMap.Lazy" insertIntMapLazy
            , InsertInt "Data.IntMap.Strict" insertIntMapStrict
+           ])
+    , bgroup
+        "IO Insert Int (Randomized)"
+        (insertIntsIO
+           [ InsertIntIO "Data.HashTable.IO.BasicHashTable" insertHashTableIOBasic
+           , InsertIntIO "Data.HashTable.IO.LinearHashTable" insertHashTableIOLinear
+           , InsertIntIO "Data.HashTable.IO.CuckooHashTable" insertHashTableIOCuckoo
+           , InsertIntIO "Data.Judy" insertJudy
            ])
     , bgroup
         "Intersection (Randomized)"
@@ -95,6 +125,20 @@ main = do
                Data.IntMap.Strict.lookup
            ])
     , bgroup
+        "IO Lookup Int (Randomized)"
+        (lookupRandomizedIO
+            [ LookupIO "Data.Judy" judyFromList judyLookup
+            , LookupIO "Data.HashTable.IO.BasicHashTable"
+                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.BasicHashTable Int Int))
+                Data.HashTable.IO.lookup
+            , LookupIO "Data.HashTable.IO.LinearHashTable"
+                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.LinearHashTable Int Int))
+                Data.HashTable.IO.lookup
+            , LookupIO "Data.HashTable.IO.CuckooHashTable"
+                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
+                 Data.HashTable.IO.lookup
+            ])
+    , bgroup
         "FromList ByteString (Monotonic)"
         (insertBSMonotonic
            [ FromListBS "Data.Map.Lazy" Data.Map.Lazy.fromList
@@ -122,6 +166,11 @@ main = do
         (\_ -> bench (title ++ ":" ++ show i) $ nf func i)
       | i <- [10, 100, 1000, 10000]
       , InsertInt title func <- funcs
+      ]
+    insertIntsIO funcs =
+      [ env (pure ()) (\_ -> bench (title ++ ":" ++ show i) $ nfIO (func i))
+      | i <- [10, 100, 1000, 10000]
+      , InsertIntIO title func <- funcs
       ]
     intersection funcs =
       [ env
@@ -155,6 +204,16 @@ main = do
         (\elems -> bench (title ++ ":" ++ show i) $ nf (flip func elems) (div i 2))
       | i <- [10, 100, 1000, 10000]
       , Lookup title fromList func <- funcs
+      ]
+    lookupRandomizedIO funcs =
+      [ env
+        (let !elems =
+               force <$> 
+                 (fromList (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
+         in elems)
+        (\elems -> bench (title ++ ":" ++ show i) $ nfIO (func elems (div i 2)))
+      | i <- [10, 100, 1000, 10000]
+      , LookupIO title fromList func <- funcs
       ]
     insertBSMonotonic funcs =
       [ env
@@ -204,3 +263,36 @@ insertIntMapStrict n0 = go n0 mempty
   where
     go 0 acc = acc
     go n !acc = go (n - 1) (Data.IntMap.Strict.insert n n acc)
+
+insertHashTableIOBasic :: Int -> IO (Data.HashTable.IO.BasicHashTable Int Int)
+insertHashTableIOBasic n0 = do
+  ht <- Data.HashTable.IO.new
+  mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
+  return ht
+
+insertHashTableIOCuckoo :: Int -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
+insertHashTableIOCuckoo n0 = do
+  ht <- Data.HashTable.IO.new
+  mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
+  return ht
+
+insertHashTableIOLinear :: Int -> IO (Data.HashTable.IO.LinearHashTable Int Int)
+insertHashTableIOLinear n0 = do
+  ht <- Data.HashTable.IO.new
+  mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1 .. n0]
+  return ht
+
+insertJudy :: Int -> IO (Data.Judy.JudyL Int)
+insertJudy n0 = do
+  j <- Data.Judy.new
+  mapM_ (\n -> Data.Judy.insert (fromIntegral n) n j) [1 .. n0]
+  return j
+
+judyFromList :: [(Int,Int)] -> IO (Data.Judy.JudyL Int)
+judyFromList xs = do
+  j <- Data.Judy.new
+  mapM_ (\(k,v) -> Data.Judy.insert (fromIntegral k) v j) xs
+  return j
+
+judyLookup :: Data.Judy.JudyL Int -> Int -> IO (Maybe Int)
+judyLookup j k = Data.Judy.lookup (fromIntegral k) j
