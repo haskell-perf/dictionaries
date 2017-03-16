@@ -199,7 +199,7 @@ main = do
       ]
     insertIntsIO funcs =
       [ env (pure ()) (\_ -> bench (title ++ ":" ++ show i) $ nfIO (func i))
-      | i <- [10, 100, 1000, 10000]
+      | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , InsertIntIO title func <- funcs
       ]
     intersection funcs =
@@ -210,7 +210,7 @@ main = do
                  , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i]))
          in pure args)
         (\args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
-      | i <- [10, 100, 1000, 10000]
+      | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , Intersection title build intersect <- funcs
       ]
     insertBSRandomized funcs =
@@ -233,7 +233,7 @@ main = do
          in pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
-      | i <- [10, 100, 1000, 10000]
+      | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , Lookup title fromList func <- funcs
       ]
     lookupRandomizedIO funcs =
@@ -244,7 +244,7 @@ main = do
                pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nfIO (func elems key))
-      | i <- [10, 100, 1000, 10000]
+      | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , LookupIO title fromList func <- funcs
       ]
     insertBSMonotonic funcs =
