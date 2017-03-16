@@ -108,7 +108,7 @@ For just time:
 
 |Name|10|100|1000|10000|
 |---|---|---|---|---|
-|Data.Judy|47.57 ns|55.74 ns|53.54 ns|52.33 ns|
 |Data.HashTable.IO.BasicHashTable|50.03 ns|51.00 ns|48.52 ns|46.16 ns|
 |Data.HashTable.IO.LinearHashTable|139.2 ns|177.7 ns|161.9 ns|128.7 ns|
 |Data.HashTable.IO.CuckooHashTable|203.2 ns|187.0 ns|187.4 ns|201.3 ns|
+|Data.Judy|47.57 ns|55.74 ns|53.54 ns|52.33 ns|

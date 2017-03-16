@@ -45,7 +45,7 @@ data Lookup =
                    ([(Int, Int)] -> f Int)
                    (Int -> f Int ->  (Maybe Int))
 
-data LookupIO = 
+data LookupIO =
   forall d. NFData d => LookupIO String ([(Int,Int)] -> IO d) (d -> Int -> IO (Maybe Int))
 
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
@@ -127,8 +127,7 @@ main = do
     , bgroup
         "IO Lookup Int (Randomized)"
         (lookupRandomizedIO
-            [ LookupIO "Data.Judy" judyFromList judyLookup
-            , LookupIO "Data.HashTable.IO.BasicHashTable"
+            [ LookupIO "Data.HashTable.IO.BasicHashTable"
                 (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.BasicHashTable Int Int))
                 Data.HashTable.IO.lookup
             , LookupIO "Data.HashTable.IO.LinearHashTable"
@@ -137,6 +136,7 @@ main = do
             , LookupIO "Data.HashTable.IO.CuckooHashTable"
                 (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
                  Data.HashTable.IO.lookup
+            ,  LookupIO "Data.Judy" judyFromList judyLookup
             ])
     , bgroup
         "FromList ByteString (Monotonic)"
@@ -208,7 +208,7 @@ main = do
     lookupRandomizedIO funcs =
       [ env
         (let !elems =
-               force <$> 
+               force <$>
                  (fromList (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
          in elems)
         (\elems -> bench (title ++ ":" ++ show i) $ nfIO (func elems (div i 2)))
