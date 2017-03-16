@@ -94,3 +94,21 @@ For just time:
 |Data.HashMap.Lazy|819.2 ns|10.54 μs|147.2 μs|3.784 ms|
 |Data.HashMap.Strict|871.5 ns|10.70 μs|149.0 μs|3.801 ms|
 |Data.Trie|1182 ns|24.94 μs|1174 μs|25.13 ms|
+
+## IO Insert Int (Randomized)
+
+|Name|10|100|1000|10000|
+|---|---|---|---|---|
+|Data.HashTable.IO.BasicHashTable|1.010 μs|19.73 μs|199.5 μs|2.523 ms|
+|Data.HashTable.IO.LinearHashTable|1.027 μs|21.54 μs|216.0 μs|3.840 ms|
+|Data.HashTable.IO.CuckooHashTable|2.981 μs|45.46 μs|690.3 μs|10.75 ms|
+|Data.Judy|1.460 μs|12.70 μs|135.3 μs|1.280 ms|
+
+## IO Lookup Int (Randomized)
+
+|Name|10|100|1000|10000|
+|---|---|---|---|---|
+|Data.Judy|47.57 ns|55.74 ns|53.54 ns|52.33 ns|
+|Data.HashTable.IO.BasicHashTable|50.03 ns|51.00 ns|48.52 ns|46.16 ns|
+|Data.HashTable.IO.LinearHashTable|139.2 ns|177.7 ns|161.9 ns|128.7 ns|
+|Data.HashTable.IO.CuckooHashTable|203.2 ns|187.0 ns|187.4 ns|201.3 ns|
