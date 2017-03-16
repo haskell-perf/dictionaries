@@ -46,7 +46,10 @@ data Lookup =
                    (Int -> f Int ->  (Maybe Int))
 
 data LookupIO =
-  forall d. NFData d => LookupIO String ([(Int,Int)] -> IO d) (d -> Int -> IO (Maybe Int))
+  forall f. NFData (f Int) =>
+            LookupIO String
+                     ([(Int, Int)] -> IO (f Int))
+                     (f Int -> Int -> IO (Maybe Int))
 
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
@@ -84,20 +87,44 @@ main = do
     , bgroup
         "IO Insert Int (Randomized)"
         (insertIntsIO
-           [ InsertIntIO "Data.HashTable.IO.BasicHashTable" insertHashTableIOBasic
-           , InsertIntIO "Data.HashTable.IO.LinearHashTable" insertHashTableIOLinear
-           , InsertIntIO "Data.HashTable.IO.CuckooHashTable" insertHashTableIOCuckoo
+           [ InsertIntIO
+               "Data.HashTable.IO.BasicHashTable"
+               insertHashTableIOBasic
+           , InsertIntIO
+               "Data.HashTable.IO.LinearHashTable"
+               insertHashTableIOLinear
+           , InsertIntIO
+               "Data.HashTable.IO.CuckooHashTable"
+               insertHashTableIOCuckoo
            , InsertIntIO "Data.Judy" insertJudy
            ])
     , bgroup
         "Intersection (Randomized)"
         (intersection
-           [ Intersection "Data.Map.Lazy" Data.Map.Lazy.fromList Data.Map.Lazy.intersection
-           , Intersection "Data.Map.Strict" Data.Map.Strict.fromList Data.Map.Strict.intersection
-           , Intersection "Data.HashMap.Lazy" Data.HashMap.Lazy.fromList Data.HashMap.Lazy.intersection
-           , Intersection "Data.HashMap.Strict" Data.HashMap.Strict.fromList Data.HashMap.Strict.intersection
-           , Intersection "Data.IntMap.Lazy" Data.IntMap.Lazy.fromList Data.IntMap.Lazy.intersection
-           , Intersection "Data.IntMap.Strict" Data.IntMap.Strict.fromList Data.IntMap.Strict.intersection
+           [ Intersection
+               "Data.Map.Lazy"
+               Data.Map.Lazy.fromList
+               Data.Map.Lazy.intersection
+           , Intersection
+               "Data.Map.Strict"
+               Data.Map.Strict.fromList
+               Data.Map.Strict.intersection
+           , Intersection
+               "Data.HashMap.Lazy"
+               Data.HashMap.Lazy.fromList
+               Data.HashMap.Lazy.intersection
+           , Intersection
+               "Data.HashMap.Strict"
+               Data.HashMap.Strict.fromList
+               Data.HashMap.Strict.intersection
+           , Intersection
+               "Data.IntMap.Lazy"
+               Data.IntMap.Lazy.fromList
+               Data.IntMap.Lazy.intersection
+           , Intersection
+               "Data.IntMap.Strict"
+               Data.IntMap.Strict.fromList
+               Data.IntMap.Strict.intersection
            ])
     , bgroup
         "Lookup Int (Randomized)"
@@ -127,17 +154,20 @@ main = do
     , bgroup
         "IO Lookup Int (Randomized)"
         (lookupRandomizedIO
-            [ LookupIO "Data.HashTable.IO.BasicHashTable"
-                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.BasicHashTable Int Int))
-                Data.HashTable.IO.lookup
-            , LookupIO "Data.HashTable.IO.LinearHashTable"
-                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.LinearHashTable Int Int))
-                Data.HashTable.IO.lookup
-            , LookupIO "Data.HashTable.IO.CuckooHashTable"
-                (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
-                 Data.HashTable.IO.lookup
-            ,  LookupIO "Data.Judy" judyFromList judyLookup
-            ])
+           [ LookupIO
+               "Data.HashTable.IO.BasicHashTable"
+               (Data.HashTable.IO.fromList :: [(Int, Int)] -> IO (Data.HashTable.IO.BasicHashTable Int Int))
+               Data.HashTable.IO.lookup
+           , LookupIO
+               "Data.HashTable.IO.LinearHashTable"
+               (Data.HashTable.IO.fromList :: [(Int, Int)] -> IO (Data.HashTable.IO.LinearHashTable Int Int))
+               Data.HashTable.IO.lookup
+           , LookupIO
+               "Data.HashTable.IO.CuckooHashTable"
+               (Data.HashTable.IO.fromList :: [(Int, Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
+               Data.HashTable.IO.lookup
+           , LookupIO "Data.Judy" judyFromList judyLookup
+           ])
     , bgroup
         "FromList ByteString (Monotonic)"
         (insertBSMonotonic
@@ -175,11 +205,11 @@ main = do
     intersection funcs =
       [ env
         (let !args =
-               force ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
-                     , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
-                     )
-         in  pure args)
-        (\ args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
+               force
+                 ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
+                 , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i]))
+         in pure args)
+        (\args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
       | i <- [10, 100, 1000, 10000]
       , Intersection title build intersect <- funcs
       ]
@@ -197,28 +227,33 @@ main = do
       ]
     lookupRandomized funcs =
       [ env
-        (let !elems =
-               force
-                 (fromList (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
-         in pure elems)
-        (\elems -> bench (title ++ ":" ++ show i) $ nf (flip func elems) (div i 2))
+        (let list = take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])
+             (!key, _) = list !! (div i 2)
+             !elems = force (fromList list)
+         in pure (elems, key))
+        (\(~(elems, key)) ->
+           bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
       | i <- [10, 100, 1000, 10000]
       , Lookup title fromList func <- funcs
       ]
     lookupRandomizedIO funcs =
       [ env
-        (let !elems =
-               force <$>
-                 (fromList (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
-         in elems)
-        (\elems -> bench (title ++ ":" ++ show i) $ nfIO (func elems (div i 2)))
+        (let list = take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])
+             (!key, _) = list !! (div i 2)
+         in do !elems <- fmap force (fromList list)
+               pure (elems, key))
+        (\(~(elems, key)) ->
+           bench (title ++ ":" ++ show i) $ nfIO (func elems key))
       | i <- [10, 100, 1000, 10000]
       , LookupIO title fromList func <- funcs
       ]
     insertBSMonotonic funcs =
       [ env
         (let !elems =
-               force (map (first (S8.pack . show)) (take i (zip [1 :: Int ..] [1 ..])))
+               force
+                 (map
+                    (first (S8.pack . show))
+                    (take i (zip [1 :: Int ..] [1 ..])))
          in pure elems)
         (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
       | i <- [10000]
