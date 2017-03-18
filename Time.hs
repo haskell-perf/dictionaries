@@ -15,6 +15,7 @@ import qualified Data.ByteString.Char8 as S8
 import qualified Data.HashMap.Lazy
 import qualified Data.HashMap.Strict
 import qualified Data.HashTable.IO
+import qualified Data.HashTable.Class
 import qualified Data.HashTable.ST.Basic
 import qualified Data.HashTable.ST.Cuckoo
 import qualified Data.HashTable.ST.Linear
@@ -29,7 +30,7 @@ import           System.Random
 
 data InsertInt = forall f. NFData (f Int) => InsertInt String (Int -> f Int)
 
-data InsertIntIO = forall d. NFData d => InsertIntIO String (Int -> IO d)
+data InsertIntIO = forall d. NFData d => InsertIntIO String (IO d) (d -> Int -> IO d)
 
 data FromListBS =
   forall f. NFData (f Int) =>
@@ -38,6 +39,9 @@ data FromListBS =
 
 data Intersection = forall f. NFData (f Int) =>
      Intersection String ([(Int,Int)] -> f Int) (f Int -> f Int -> f Int)
+
+data IntersectionIO = forall d. NFData d =>
+     IntersectionIO String ([(Int,Int)] -> IO d) (d -> d -> IO d)
 
 data Lookup =
   forall f. (NFData (f Int)) =>
@@ -84,10 +88,10 @@ main = do
     , bgroup
         "IO Insert Int (Randomized)"
         (insertIntsIO
-           [ InsertIntIO "Data.HashTable.IO.BasicHashTable" insertHashTableIOBasic
-           , InsertIntIO "Data.HashTable.IO.LinearHashTable" insertHashTableIOLinear
-           , InsertIntIO "Data.HashTable.IO.CuckooHashTable" insertHashTableIOCuckoo
-           , InsertIntIO "Data.Judy" insertJudy
+           [ InsertIntIO "Data.HashTable.IO.BasicHashTable" Data.HashTable.IO.new insertHashTableIOBasic
+           , InsertIntIO "Data.HashTable.IO.LinearHashTable" Data.HashTable.IO.new insertHashTableIOLinear
+           , InsertIntIO "Data.HashTable.IO.CuckooHashTable" Data.HashTable.IO.new insertHashTableIOCuckoo
+           , InsertIntIO "Data.Judy" Data.Judy.new insertJudy
            ])
     , bgroup
         "Intersection (Randomized)"
@@ -98,6 +102,14 @@ main = do
            , Intersection "Data.HashMap.Strict" Data.HashMap.Strict.fromList Data.HashMap.Strict.intersection
            , Intersection "Data.IntMap.Lazy" Data.IntMap.Lazy.fromList Data.IntMap.Lazy.intersection
            , Intersection "Data.IntMap.Strict" Data.IntMap.Strict.fromList Data.IntMap.Strict.intersection
+           ])
+    , bgroup
+        "IO Intersection (Randomized)"
+        (intersectionIO
+           [ IntersectionIO "Data.HashTable.IO.BasicHashTable" Data.HashTable.IO.fromList intersectionHashTableIOBasic
+           , IntersectionIO "Data.HashTable.IO.LinearHashTable" Data.HashTable.IO.fromList intersectionHashTableIOLinear
+           , IntersectionIO "Data.HashTable.IO.CuckooHashTable" Data.HashTable.IO.fromList intersectionHashTableIOCuckoo
+           , IntersectionIO "Data.Judy" judyFromList intersectionJudy
            ])
     , bgroup
         "Lookup Int (Randomized)"
@@ -168,9 +180,9 @@ main = do
       , InsertInt title func <- funcs
       ]
     insertIntsIO funcs =
-      [ env (pure ()) (\_ -> bench (title ++ ":" ++ show i) $ nfIO (func i))
+      [ env init (\init -> bench (title ++ ":" ++ show i) $ nfIO (func init i))
       | i <- [10, 100, 1000, 10000]
-      , InsertIntIO title func <- funcs
+      , InsertIntIO title init func <- funcs
       ]
     intersection funcs =
       [ env
@@ -182,6 +194,17 @@ main = do
         (\ args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
       | i <- [10, 100, 1000, 10000]
       , Intersection title build intersect <- funcs
+      ]
+    intersectionIO funcs =
+      [ env
+        (let !args =
+               force ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
+                     , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
+                     )
+         in  pure args)
+        (\ (xs,ys) -> bench (title ++ ":" ++ show i) $ nfIO (intersect xs ys))
+      | i <- [10, 100, 1000, 10000]
+      , IntersectionIO title build intersect <- funcs
       ]
     insertBSRandomized funcs =
       [ env
@@ -264,27 +287,22 @@ insertIntMapStrict n0 = go n0 mempty
     go 0 acc = acc
     go n !acc = go (n - 1) (Data.IntMap.Strict.insert n n acc)
 
-insertHashTableIOBasic :: Int -> IO (Data.HashTable.IO.BasicHashTable Int Int)
-insertHashTableIOBasic n0 = do
-  ht <- Data.HashTable.IO.new
+insertHashTableIO :: Data.HashTable.Class.HashTable ht => ht s Int Int -> Int -> IO (ht s Int Int)
+insertHashTableIO ht n0 = do
   mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
   return ht
 
-insertHashTableIOCuckoo :: Int -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
-insertHashTableIOCuckoo n0 = do
-  ht <- Data.HashTable.IO.new
-  mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
-  return ht
+insertHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int -> Int -> IO (Data.HashTable.IO.BasicHashTable Int Int)
+insertHashTableIOBasic = insertHashTableIO
 
-insertHashTableIOLinear :: Int -> IO (Data.HashTable.IO.LinearHashTable Int Int)
-insertHashTableIOLinear n0 = do
-  ht <- Data.HashTable.IO.new
-  mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1 .. n0]
-  return ht
+insertHashTableIOCuckoo :: Data.HashTable.IO.CuckooHashTable Int Int -> Int -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
+insertHashTableIOCuckoo = insertHashTableIO
 
-insertJudy :: Int -> IO (Data.Judy.JudyL Int)
-insertJudy n0 = do
-  j <- Data.Judy.new
+insertHashTableIOLinear :: Data.HashTable.IO.LinearHashTable Int Int -> Int -> IO (Data.HashTable.IO.LinearHashTable Int Int)
+insertHashTableIOLinear = insertHashTableIO
+
+insertJudy :: Data.Judy.JudyL Int -> Int -> IO (Data.Judy.JudyL Int)
+insertJudy j n0 = do
   mapM_ (\n -> Data.Judy.insert (fromIntegral n) n j) [1 .. n0]
   return j
 
@@ -296,3 +314,36 @@ judyFromList xs = do
 
 judyLookup :: Data.Judy.JudyL Int -> Int -> IO (Maybe Int)
 judyLookup j k = Data.Judy.lookup (fromIntegral k) j
+
+intersectionJudy :: Data.Judy.JudyL Int -> Data.Judy.JudyL Int -> IO (Data.Judy.JudyL Int)
+intersectionJudy ij0 ij1 = do
+  j <- Data.Judy.new
+  j0 <- Data.Judy.unsafeFreeze ij0
+  j1 <- Data.Judy.unsafeFreeze ij1
+  j0Kvs <- Data.Judy.toList j0
+  j1Kvs <- Data.Judy.toList j1
+  mapM_ (\(k,v) -> Data.Judy.insert k v j) j0Kvs
+  mapM_ (\(k,v) -> Data.Judy.insert k v j) j1Kvs
+  return j
+
+intersectionHashTableIO :: Data.HashTable.Class.HashTable ht => ht s Int Int -> ht s Int Int -> IO (ht s Int Int)
+intersectionHashTableIO ht0 ht1 = do
+  ht <- Data.HashTable.IO.new
+  Data.HashTable.IO.mapM_ (\(k,v) -> Data.HashTable.IO.insert ht k v) ht0
+  Data.HashTable.IO.mapM_ (\(k,v) -> Data.HashTable.IO.insert ht k v) ht1
+  return ht
+
+intersectionHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int
+  -> Data.HashTable.IO.BasicHashTable Int Int
+  -> IO (Data.HashTable.IO.BasicHashTable Int Int )
+intersectionHashTableIOBasic = intersectionHashTableIO
+
+intersectionHashTableIOCuckoo :: Data.HashTable.IO.CuckooHashTable Int Int
+  -> Data.HashTable.IO.CuckooHashTable Int Int
+  -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
+intersectionHashTableIOCuckoo = intersectionHashTableIO
+
+intersectionHashTableIOLinear :: Data.HashTable.IO.LinearHashTable Int Int
+  -> Data.HashTable.IO.LinearHashTable Int Int
+  -> IO (Data.HashTable.IO.LinearHashTable Int Int)
+intersectionHashTableIOLinear = intersectionHashTableIO
