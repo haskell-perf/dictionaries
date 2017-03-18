@@ -228,9 +228,9 @@ main = do
       , InsertInt title func <- funcs
       ]
     insertIntsIO funcs =
-      [ env init (\init -> bench (title ++ ":" ++ show i) $ nfIO (func init i))
+      [ env (force <$> initial) (\ht -> bench (title ++ ":" ++ show i) $ nfIO (func ht i))
       | i <- [10, 100, 1000, 10000]
-      , InsertIntIO title init func <- funcs
+      , InsertIntIO title initial func <- funcs
       ]
     intersection funcs =
       [ env
@@ -245,11 +245,10 @@ main = do
       ]
     intersectionIO funcs =
       [ env
-        (let !args =
-               force ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
-                     , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
-                     )
-         in  pure args)
+        (do
+           xs <- force <$> build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
+           ys <- force <$> build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
+           return (xs, ys))
         (\ (xs,ys) -> bench (title ++ ":" ++ show i) $ nfIO (intersect xs ys))
       | i <- [10, 100, 1000, 10000]
       , IntersectionIO title build intersect <- funcs
@@ -340,7 +339,7 @@ insertIntMapStrict n0 = go n0 mempty
     go 0 acc = acc
     go n !acc = go (n - 1) (Data.IntMap.Strict.insert n n acc)
 
-insertHashTableIO :: Data.HashTable.Class.HashTable ht => ht s Int Int -> Int -> IO (ht s Int Int)
+insertHashTableIO :: Data.HashTable.Class.HashTable ht => Data.HashTable.IO.IOHashTable ht Int Int -> Int -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
 insertHashTableIO ht n0 = do
   mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
   return ht
@@ -379,7 +378,7 @@ intersectionJudy ij0 ij1 = do
   mapM_ (\(k,v) -> Data.Judy.insert k v j) j1Kvs
   return j
 
-intersectionHashTableIO :: Data.HashTable.Class.HashTable ht => ht s Int Int -> ht s Int Int -> IO (ht s Int Int)
+intersectionHashTableIO :: Data.HashTable.Class.HashTable ht => Data.HashTable.IO.IOHashTable ht Int Int -> Data.HashTable.IO.IOHashTable ht Int Int -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
 intersectionHashTableIO ht0 ht1 = do
   ht <- Data.HashTable.IO.new
   Data.HashTable.IO.mapM_ (\(k,v) -> Data.HashTable.IO.insert ht k v) ht0
