@@ -228,7 +228,7 @@ main = do
       , InsertInt title func <- funcs
       ]
     insertIntsIO funcs =
-      [ env (force <$> initial) (\ht -> bench (title ++ ":" ++ show i) $ nfIO (func ht i))
+      [ env initial (\ht -> bench (title ++ ":" ++ show i) $ nfIO (func ht i))
       | i <- [10, 100, 1000, 10000]
       , InsertIntIO title initial func <- funcs
       ]
@@ -339,18 +339,27 @@ insertIntMapStrict n0 = go n0 mempty
     go 0 acc = acc
     go n !acc = go (n - 1) (Data.IntMap.Strict.insert n n acc)
 
-insertHashTableIO :: Data.HashTable.Class.HashTable ht => Data.HashTable.IO.IOHashTable ht Int Int -> Int -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
+insertHashTableIO :: Data.HashTable.Class.HashTable ht
+  => Data.HashTable.IO.IOHashTable ht Int Int
+  -> Int
+  -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
 insertHashTableIO ht n0 = do
   mapM_ (\n -> Data.HashTable.IO.insert ht n n) [1..n0]
   return ht
 
-insertHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int -> Int -> IO (Data.HashTable.IO.BasicHashTable Int Int)
+insertHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int
+  -> Int
+  -> IO (Data.HashTable.IO.BasicHashTable Int Int)
 insertHashTableIOBasic = insertHashTableIO
 
-insertHashTableIOCuckoo :: Data.HashTable.IO.CuckooHashTable Int Int -> Int -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
+insertHashTableIOCuckoo :: Data.HashTable.IO.CuckooHashTable Int Int
+  -> Int
+  -> IO (Data.HashTable.IO.CuckooHashTable Int Int)
 insertHashTableIOCuckoo = insertHashTableIO
 
-insertHashTableIOLinear :: Data.HashTable.IO.LinearHashTable Int Int -> Int -> IO (Data.HashTable.IO.LinearHashTable Int Int)
+insertHashTableIOLinear :: Data.HashTable.IO.LinearHashTable Int Int
+  -> Int
+  -> IO (Data.HashTable.IO.LinearHashTable Int Int)
 insertHashTableIOLinear = insertHashTableIO
 
 insertJudy :: Data.Judy.JudyL Int -> Int -> IO (Data.Judy.JudyL Int)
@@ -378,11 +387,14 @@ intersectionJudy ij0 ij1 = do
   mapM_ (\(k,v) -> Data.Judy.insert k v j) j1Kvs
   return j
 
-intersectionHashTableIO :: Data.HashTable.Class.HashTable ht => Data.HashTable.IO.IOHashTable ht Int Int -> Data.HashTable.IO.IOHashTable ht Int Int -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
+intersectionHashTableIO :: Data.HashTable.Class.HashTable ht
+  => Data.HashTable.IO.IOHashTable ht Int Int
+  -> Data.HashTable.IO.IOHashTable ht Int Int
+  -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
 intersectionHashTableIO ht0 ht1 = do
   ht <- Data.HashTable.IO.new
-  Data.HashTable.IO.mapM_ (\(k,v) -> Data.HashTable.IO.insert ht k v) ht0
-  Data.HashTable.IO.mapM_ (\(k,v) -> Data.HashTable.IO.insert ht k v) ht1
+  Data.HashTable.IO.mapM_ (uncurry (Data.HashTable.IO.insert ht)) ht0
+  Data.HashTable.IO.mapM_ (uncurry (Data.HashTable.IO.insert ht)) ht1
   return ht
 
 intersectionHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int
