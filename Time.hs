@@ -5,6 +5,7 @@
 
 module Main (main) where
 
+import           Common
 import           Control.Arrow
 import           Control.DeepSeq
 import           Control.Monad
@@ -15,10 +16,6 @@ import qualified Data.ByteString.Char8 as S8
 import qualified Data.HashMap.Lazy
 import qualified Data.HashMap.Strict
 import qualified Data.HashTable.IO
-import qualified Data.HashTable.Class
-import qualified Data.HashTable.ST.Basic
-import qualified Data.HashTable.ST.Cuckoo
-import qualified Data.HashTable.ST.Linear
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
 import qualified Data.Judy
@@ -57,18 +54,6 @@ data LookupIO =
 
 -- | TODO: We need a proper deepseq. But Trie seems to perform awfully anyway so far, anyway.
 instance NFData (Data.Trie.Trie a) where
-  rnf x = seq x ()
-
-instance NFData (Data.HashTable.ST.Basic.HashTable s k v) where
-  rnf x = seq x ()
-
-instance NFData (Data.HashTable.ST.Cuckoo.HashTable s k v) where
-  rnf x = seq x ()
-
-instance NFData (Data.HashTable.ST.Linear.HashTable s k v) where
-  rnf x = seq x ()
-
-instance NFData (Data.Judy.JudyL v) where
   rnf x = seq x ()
 
 main :: IO ()
@@ -246,10 +231,10 @@ main = do
     intersectionIO funcs =
       [ env
         (do
-           xs <- force <$> build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
-           ys <- force <$> build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
+           xs <- build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
+           ys <- build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
            return (xs, ys))
-        (\ (xs,ys) -> bench (title ++ ":" ++ show i) $ nfIO (intersect xs ys))
+        (\(~(xs,ys)) -> bench (title ++ ":" ++ show i) $ nfIO (intersect xs ys))
       | i <- [10, 100, 1000, 10000]
       , IntersectionIO title build intersect <- funcs
       ]
@@ -365,12 +350,6 @@ insertHashTableIOLinear = insertHashTableIO
 insertJudy :: Data.Judy.JudyL Int -> Int -> IO (Data.Judy.JudyL Int)
 insertJudy j n0 = do
   mapM_ (\n -> Data.Judy.insert (fromIntegral n) n j) [1 .. n0]
-  return j
-
-judyFromList :: [(Int,Int)] -> IO (Data.Judy.JudyL Int)
-judyFromList xs = do
-  j <- Data.Judy.new
-  mapM_ (\(k,v) -> Data.Judy.insert (fromIntegral k) v j) xs
   return j
 
 judyLookup :: Data.Judy.JudyL Int -> Int -> IO (Maybe Int)
