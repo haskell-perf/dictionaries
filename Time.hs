@@ -359,8 +359,8 @@ judyLookup j k = Data.Judy.lookup (fromIntegral k) j
 intersectionJudy :: Data.Judy.JudyL Int -> Data.Judy.JudyL Int -> IO (Data.Judy.JudyL Int)
 intersectionJudy ij0 ij1 = do
   j <- Data.Judy.new
-  j0 <- Data.Judy.unsafeFreeze ij0
-  j1 <- Data.Judy.unsafeFreeze ij1
+  j0 <- Data.Judy.freeze ij0
+  j1 <- Data.Judy.freeze ij1
   j0Kvs <- Data.Judy.toList j0
   j1Kvs <- Data.Judy.toList j1
   mapM_ (\(k,v) -> Data.Judy.insert k v j) j0Kvs
