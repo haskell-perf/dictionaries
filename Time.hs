@@ -15,6 +15,7 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.HashMap.Lazy
 import qualified Data.HashMap.Strict
+import qualified Data.HashTable.Class
 import qualified Data.HashTable.IO
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
