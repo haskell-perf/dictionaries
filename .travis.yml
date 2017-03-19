@@ -12,7 +12,7 @@ matrix:
     addons:
       apt:
         packages:
-        - libgmp-dev"
+        - libgmp-dev
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
