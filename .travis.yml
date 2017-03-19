@@ -8,7 +8,11 @@ cache:
 matrix:
   include:
   - env: BUILD=stack ARGS="--resolver lts-6.20"
-    compiler: ": #stack 7.10.3"
+    compiler: ": #stack 7.10.3
+    addons:
+      apt:
+        packages:
+        - libgmp-dev"
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
