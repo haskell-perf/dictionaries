@@ -13,6 +13,7 @@ matrix:
       apt:
         packages:
         - libgmp-dev
+        - libjudydebian1
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
