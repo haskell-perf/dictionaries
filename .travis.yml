@@ -8,7 +8,7 @@ cache:
 matrix:
   include:
   - env: BUILD=stack ARGS="--resolver lts-6.20"
-    compiler: ": #stack 7.10.3
+    compiler: ": #stack 7.10.3"
     addons:
       apt:
         packages:
