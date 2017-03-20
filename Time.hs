@@ -22,6 +22,7 @@ import qualified Data.IntMap.Strict
 import qualified Data.Judy
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
+import           Data.Maybe (isJust)
 import qualified Data.Trie
 import           System.Directory
 import           System.Random
@@ -236,7 +237,7 @@ main = do
            ys <- build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i])
            return (xs, ys))
         (\(~(xs,ys)) -> bench (title ++ ":" ++ show i) $ nfIO (intersect xs ys))
-      | i <- [10, 100, 1000, 10000]
+       | i <- [10, 100, 1000, 10000, 100000]
       , IntersectionIO title build intersect <- funcs
       ]
     insertBSRandomized funcs =
@@ -360,11 +361,10 @@ intersectionJudy :: Data.Judy.JudyL Int -> Data.Judy.JudyL Int -> IO (Data.Judy.
 intersectionJudy ij0 ij1 = do
   j <- Data.Judy.new
   j0 <- Data.Judy.freeze ij0
-  j1 <- Data.Judy.freeze ij1
   j0Kvs <- Data.Judy.toList j0
-  j1Kvs <- Data.Judy.toList j1
-  mapM_ (\(k,v) -> Data.Judy.insert k v j) j0Kvs
-  mapM_ (\(k,v) -> Data.Judy.insert k v j) j1Kvs
+  mapM_ (\(k,v) ->
+    Data.Judy.member k ij1
+    >>= \found -> when found (Data.Judy.insert k v j)) j0Kvs
   return j
 
 intersectionHashTableIO :: Data.HashTable.Class.HashTable ht
@@ -373,8 +373,9 @@ intersectionHashTableIO :: Data.HashTable.Class.HashTable ht
   -> IO (Data.HashTable.IO.IOHashTable ht Int Int)
 intersectionHashTableIO ht0 ht1 = do
   ht <- Data.HashTable.IO.new
-  Data.HashTable.IO.mapM_ (uncurry (Data.HashTable.IO.insert ht)) ht0
-  Data.HashTable.IO.mapM_ (uncurry (Data.HashTable.IO.insert ht)) ht1
+  Data.HashTable.IO.mapM_ (\(k,v) ->
+    isJust <$> Data.HashTable.IO.lookup ht1 k
+    >>= \found -> when found (Data.HashTable.IO.insert ht k v)) ht0
   return ht
 
 intersectionHashTableIOBasic :: Data.HashTable.IO.BasicHashTable Int Int
