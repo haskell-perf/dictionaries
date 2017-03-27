@@ -5,11 +5,14 @@
 
 module Main where
 
+import           Common
 import           Control.DeepSeq
 import qualified Data.HashMap.Lazy
 import qualified Data.HashMap.Strict
+import qualified Data.HashTable.IO
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
+import qualified Data.Judy
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import           System.Random
@@ -46,3 +49,13 @@ fromlists =
      func "Data.IntMap.Lazy.fromList    (1 million)" Data.IntMap.Lazy.fromList elems
      func "Data.HashMap.Strict.fromList (1 million)" Data.HashMap.Strict.fromList elems
      func "Data.HashMap.Lazy.fromList   (1 million)" Data.HashMap.Lazy.fromList elems
+     io "Data.HashTable.IO.BasicHashTable (1 million)"
+          (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.BasicHashTable Int Int))
+          elems
+     io "Data.HashTable.IO.CuckooHashTable (1 million)"
+          (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
+          elems
+     io "Data.HashTable.IO.LinearHashTable (1 million)"
+          (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.LinearHashTable Int Int))
+          elems
+     io "Data.Judy" judyFromList elems
