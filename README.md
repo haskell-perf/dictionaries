@@ -126,3 +126,23 @@ For just time:
 |Data.HashMap.Lazy|680.0 ns|9.739 μs|148.0 μs|4.352 ms|
 |Data.HashMap.Strict|709.0 ns|9.864 μs|150.8 μs|4.707 ms|
 |Data.Trie|1062 ns|24.88 μs|1427 μs|25.57 ms|
+
+## LookupByteString Monotonic
+
+|Name|10000|
+|---|---|
+|Data.Map.Lazy|196.2 ns|
+|Data.Map.Strict|198.6 ns|
+|Data.HashMap.Lazy|45.37 ns|
+|Data.HashMap.Strict|45.69 ns|
+|Data.Trie|220.2 ns|
+
+## LookupByteString Randomized
+
+|Name|10000|
+|---|---|
+|Data.Map.Lazy|218.7 ns|
+|Data.Map.Strict|217.0 ns|
+|Data.HashMap.Lazy|59.10 ns|
+|Data.HashMap.Strict|59.01 ns|
+|Data.Trie|273.3 ns|
