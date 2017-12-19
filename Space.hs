@@ -21,8 +21,10 @@ import           Weigh
 -- | Weigh maps.
 main :: IO ()
 main =
-  mainWith (do inserts
-               fromlists)
+  mainWith
+    (do setColumns [Case,Allocated,Max,Live,GCs]
+        inserts
+        fromlists)
 
 inserts :: Weigh ()
 inserts = do func "Data.Map.Strict.insert mempty"

@@ -29,16 +29,14 @@ For just time:
 
 ## From List Int keys
 
-
-|Case|                                              Bytes|    GCs|
-|---|---|---|
-|Data.Map.Strict.fromList     (1 million)|  1,016,187,152  |1,942  |
-|Data.Map.Lazy.fromList       (1 million)|  1,016,187,152  |1,942  |
-|Data.IntMap.Strict.fromList  (1 million)|    776,852,648  |1,489  |
-|Data.IntMap.Lazy.fromList    (1 million)|    776,852,648  |1,489  |
-|Data.HashMap.Strict.fromList (1 million)|    161,155,384    |314  |
-|Data.HashMap.Lazy.fromList   (1 million)|    161,155,384    |314  |
-
+| Case                                     | Total bytes   | Max residency | Final live | GCs   |
+|------------------------------------------|---------------|---------------|------------|-------|
+| Data.Map.Strict.fromList     (1 million) | 1,016,187,152 | 55,394,296    | 31,864     | 1,942 |
+| Data.Map.Lazy.fromList       (1 million) | 1,016,187,152 | 55,394,296    | 31,864     | 1,942 |
+| Data.IntMap.Strict.fromList  (1 million) | 776,852,648   | 55,207,424    | 31,864     | 1,489 |
+| Data.IntMap.Lazy.fromList    (1 million) | 776,852,648   | 55,207,424    | 31,864     | 1,489 |
+| Data.HashMap.Strict.fromList (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
+| Data.HashMap.Lazy.fromList   (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
 
 <!-- RESULTS -->
 
@@ -121,4 +119,3 @@ For just time:
 |Data.HashMap.Lazy|680.0 ns|9.739 μs|148.0 μs|4.352 ms|
 |Data.HashMap.Strict|709.0 ns|9.864 μs|150.8 μs|4.707 ms|
 |Data.Trie|1062 ns|24.88 μs|1427 μs|25.57 ms|
-
