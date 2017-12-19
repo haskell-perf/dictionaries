@@ -1,4 +1,4 @@
-resolver: lts-6.20
+resolver: lts-8.5
 extra-deps:
   - judy-0.3.0
   - weigh-0.0.7

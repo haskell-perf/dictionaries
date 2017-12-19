@@ -38,6 +38,15 @@ For just time:
 | Data.HashMap.Strict.fromList (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
 | Data.HashMap.Lazy.fromList   (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
 
+## IO maps fromList
+
+| Case                                          | Total bytes | Max residency | Final live | GCs |
+|-----------------------------------------------|-------------|---------------|------------|-----|
+| Data.HashTable.IO.BasicHashTable (1 million)  | 424,214,184 | 47,254,400    | 1,120      | 672 |
+| Data.HashTable.IO.CuckooHashTable (1 million) | 173,581,848 | 1,328         | 1,328      | 244 |
+| Data.HashTable.IO.LinearHashTable (1 million) | 281,294,784 | 22,373,256    | 0          | 545 |
+| Data.Judy                                     | 112,000,400 | 152           | 152        | 214 |
+
 <!-- RESULTS -->
 
 ## Insert Int (Randomized)
