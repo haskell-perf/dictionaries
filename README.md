@@ -16,8 +16,7 @@ For just time:
 
     $ stack bench :time
 
-## Insert Int keys
-
+## Insert Int keys space use
 
 |Case|                                              Bytes|    GCs|
 |---|---|---|
@@ -26,8 +25,7 @@ For just time:
 |Data.HashMap.Strict.insert mempty                    |64      |0  |
 |Data.HashMap.Lazy.insert mempty                      |48      |0  |
 
-
-## From List Int keys
+## Pure maps fromList space use
 
 | Case                                     | Total bytes   | Max residency | Final live | GCs   |
 |------------------------------------------|---------------|---------------|------------|-------|
@@ -38,7 +36,7 @@ For just time:
 | Data.HashMap.Strict.fromList (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
 | Data.HashMap.Lazy.fromList   (1 million) | 161,155,384   | 40,358,064    | 0          | 314   |
 
-## IO maps fromList
+## IO maps fromList space use
 
 | Case                                          | Total bytes | Max residency | Final live | GCs |
 |-----------------------------------------------|-------------|---------------|------------|-----|
