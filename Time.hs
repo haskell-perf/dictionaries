@@ -19,6 +19,7 @@ import qualified Data.HashTable.Class
 import qualified Data.HashTable.IO
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
+import           Data.List (foldl')
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import           Data.Maybe (isJust)
@@ -294,11 +295,20 @@ main = do
     lookupRandomized funcs =
       [ env
         (let list = take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])
-             (!key, _) = list !! (div i 2)
              !elems = force (fromList list)
-          in pure (elems, key))
-        (\(~(elems, key)) ->
-           bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
+          in pure (list, elems))
+        (\(~(list, elems)) ->
+           bench (title ++ ":" ++ show i) $
+           nf
+             (\ks ->
+                foldl'
+                  (\_ k ->
+                     case func k elems of
+                       Just !v -> v
+                       Nothing -> 0)
+                  0
+                  ks)
+             (map fst list))
       | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , Lookup title fromList func <- funcs
       ]
@@ -324,11 +334,20 @@ main = do
                  (map
                     (first (S8.pack . show))
                     (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
-             (!key, _) = list !! (div i 2)
              !elems = force (fromList list)
-          in pure (elems, key))
-        (\(~(elems, key)) ->
-           bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
+          in pure (list, elems))
+        (\(~(list, elems)) ->
+           bench (title ++ ":" ++ show i) $
+           nf
+             (\ks ->
+                foldl'
+                  (\_ k ->
+                     case func k elems of
+                       Just !v -> v
+                       Nothing -> 0)
+                  0
+                  ks)
+             (map fst list))
       | i <- [10000]
       , LookupBS title fromList func <- funcs
       ]

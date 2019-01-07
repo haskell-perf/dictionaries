@@ -47,7 +47,6 @@ For just time:
 | Data.HashTable.IO.BasicHashTable (1 million)  | 424,214,184 | 47,254,400    | 1,120      | 672 |
 | Data.HashTable.IO.CuckooHashTable (1 million) | 173,581,848 | 1,328         | 1,328      | 244 |
 | Data.HashTable.IO.LinearHashTable (1 million) | 281,294,784 | 22,373,256    | 0          | 545 |
-| Data.Judy                                     | 112,000,400 | 152           | 152        | 214 |
 
 <!-- RESULTS -->
 
@@ -69,7 +68,6 @@ For just time:
 |Data.HashTable.IO.BasicHashTable|1501 ns|12.87 μs|132.3 μs|2.628 ms|
 |Data.HashTable.IO.LinearHashTable|914.0 ns|9.915 μs|111.9 μs|1.024 ms|
 |Data.HashTable.IO.CuckooHashTable|1027 ns|10.35 μs|104.2 μs|1.562 ms|
-|Data.Judy|440.8 ns|5.487 μs|68.25 μs|0.612 ms|
 
 ## Intersection (Randomized)
 
@@ -89,27 +87,25 @@ For just time:
 |Data.HashTable.IO.BasicHashTable|2.470 μs|44.41 μs|648.0 μs|8.616 ms|
 |Data.HashTable.IO.LinearHashTable|3.064 μs|40.86 μs|471.9 μs|8.734 ms|
 |Data.HashTable.IO.CuckooHashTable|3.598 μs|48.18 μs|1206 μs|14.65 ms|
-|Data.Judy|3.150 μs|41.50 μs|436.7 μs|6.138 ms|
 
 ## Lookup Int (Randomized)
 
 |Name|10|100|1000|10000|100000|1000000|
 |---|---|---|---|---|---|---|
-|Data.Map.Lazy|17.11 ns|26.66 ns|35.41 ns|56.09 ns|75.62 ns|64.22 ns|
-|Data.Map.Strict|17.51 ns|26.25 ns|35.62 ns|51.95 ns|71.76 ns|72.39 ns|
-|Data.HashMap.Lazy|26.63 ns|29.82 ns|24.89 ns|28.10 ns|40.25 ns|44.14 ns|
-|Data.HashMap.Strict|27.19 ns|31.86 ns|25.14 ns|32.25 ns|40.18 ns|48.39 ns|
-|Data.IntMap.Lazy|17.70 ns|27.10 ns|35.27 ns|42.06 ns|49.01 ns|66.90 ns|
-|Data.IntMap.Strict|17.91 ns|26.49 ns|33.68 ns|41.21 ns|47.23 ns|67.03 ns|
+|Data.Map.Lazy|113.9 ns|1.697 μs|67.91 μs|1225 μs|21.89 ms|556.1 ms|
+|Data.Map.Strict|113.5 ns|1.782 μs|67.75 μs|1258 μs|21.68 ms|543.4 ms|
+|Data.HashMap.Lazy|156.9 ns|2.151 μs|31.06 μs|531.4 μs|17.10 ms|339.4 ms|
+|Data.HashMap.Strict|166.1 ns|2.157 μs|27.52 μs|517.6 μs|16.62 ms|335.9 ms|
+|Data.IntMap.Lazy|138.7 ns|1.830 μs|71.38 μs|1203 μs|24.10 ms|649.5 ms|
+|Data.IntMap.Strict|138.6 ns|1.835 μs|70.28 μs|1192 μs|25.18 ms|629.8 ms|
 
 ## IO Lookup Int (Randomized)
 
 |Name|10|100|1000|10000|100000|1000000|
 |---|---|---|---|---|---|---|
-|Data.HashTable.IO.BasicHashTable|39.09 ns|45.62 ns|39.40 ns|35.00 ns|38.11 ns|36.18 ns|
-|Data.HashTable.IO.LinearHashTable|76.05 ns|77.62 ns|90.57 ns|70.39 ns|77.03 ns|311.3 ns|
-|Data.HashTable.IO.CuckooHashTable|78.33 ns|77.49 ns|87.11 ns|84.02 ns|77.63 ns|78.82 ns|
-|Data.Judy|49.31 ns|70.85 ns|63.10 ns|88.21 ns|54.02 ns|82.28 ns|
+|Data.HashTable.IO.BasicHashTable|24.26 ns|32.13 ns|26.87 ns|24.60 ns|24.56 ns|23.71 ns|
+|Data.HashTable.IO.LinearHashTable|55.54 ns|52.75 ns|55.70 ns|49.12 ns|54.17 ns|304.5 ns|
+|Data.HashTable.IO.CuckooHashTable|59.44 ns|52.11 ns|52.30 ns|53.48 ns|51.75 ns|52.33 ns|
 
 ## FromList ByteString (Monotonic)
 
