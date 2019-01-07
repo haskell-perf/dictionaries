@@ -1,6 +1,10 @@
 # dictionaries
 
-Benchmarks for dictionary data structures: hash tables, maps, tries, etc.
+Benchmarks for dictionary data structures: hash tables, maps, tries,
+etc.
+
+The `judy` package was removed from this test suite for instability;
+it segfaults the program.
 
 ## Running
 

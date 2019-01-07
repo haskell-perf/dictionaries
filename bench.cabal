@@ -21,7 +21,6 @@ test-suite space
                , bytestring-trie
                , random
                , hashtables
-               , judy
 
 benchmark time
   default-language: Haskell2010
@@ -39,7 +38,6 @@ benchmark time
                    , bytestring-trie
                    , random, directory
                    , hashtables
-                   , judy
 
 executable report
   default-language: Haskell2010

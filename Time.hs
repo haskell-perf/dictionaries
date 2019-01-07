@@ -5,7 +5,7 @@
 
 module Main (main) where
 
-import           Common
+import           Common ()
 import           Control.Arrow
 import           Control.DeepSeq
 import           Control.Monad
@@ -19,7 +19,6 @@ import qualified Data.HashTable.Class
 import qualified Data.HashTable.IO
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
-import qualified Data.Judy
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import           Data.Maybe (isJust)
@@ -96,7 +95,6 @@ main = do
                "Data.HashTable.IO.CuckooHashTable"
                Data.HashTable.IO.new
                insertHashTableIOCuckoo
-           , InsertIntIO "Data.Judy" Data.Judy.new insertJudy
            ])
     , bgroup
         "Intersection (Randomized)"
@@ -141,7 +139,7 @@ main = do
                "Data.HashTable.IO.CuckooHashTable"
                Data.HashTable.IO.fromList
                intersectionHashTableIOCuckoo
-           , IntersectionIO "Data.Judy" judyFromList intersectionJudy
+
            ])
     , bgroup
         "Lookup Int (Randomized)"
@@ -183,7 +181,7 @@ main = do
                "Data.HashTable.IO.CuckooHashTable"
                (Data.HashTable.IO.fromList :: [(Int, Int)] -> IO (Data.HashTable.IO.CuckooHashTable Int Int))
                Data.HashTable.IO.lookup
-           , LookupIO "Data.Judy" judyFromList judyLookup
+
            ])
     , bgroup
         "FromList ByteString (Monotonic)"
@@ -251,7 +249,7 @@ main = do
       [ env
         (let !elems =
                force (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
-         in pure elems)
+          in pure elems)
         (\_ -> bench (title ++ ":" ++ show i) $ nf func i)
       | i <- [10, 100, 1000, 10000]
       , InsertInt title func <- funcs
@@ -267,7 +265,7 @@ main = do
                force
                  ( build (zip (randoms (mkStdGen 0) :: [Int]) [1 :: Int .. i])
                  , build (zip (randoms (mkStdGen 1) :: [Int]) [1 :: Int .. i]))
-         in pure args)
+          in pure args)
         (\args -> bench (title ++ ":" ++ show i) $ nf (uncurry intersect) args)
       | i <- [10, 100, 1000, 10000, 100000, 1000000]
       , Intersection title build intersect <- funcs
@@ -288,7 +286,7 @@ main = do
                  (map
                     (first (S8.pack . show))
                     (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
-         in pure elems)
+          in pure elems)
         (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
       | i <- [10, 100, 1000, 10000]
       , FromListBS title func <- funcs
@@ -298,7 +296,7 @@ main = do
         (let list = take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])
              (!key, _) = list !! (div i 2)
              !elems = force (fromList list)
-         in pure (elems, key))
+          in pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
       | i <- [10, 100, 1000, 10000, 100000, 1000000]
@@ -313,7 +311,7 @@ main = do
                     (take i (zip [1 :: Int ..] [1 ..])))
              (!key, _) = list !! (div i 2)
              !elems = force (fromList list)
-         in pure (elems, key))
+          in pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
       | i <- [10000]
@@ -328,7 +326,7 @@ main = do
                     (take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])))
              (!key, _) = list !! (div i 2)
              !elems = force (fromList list)
-         in pure (elems, key))
+          in pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nf (flip func elems) key)
       | i <- [10000]
@@ -338,8 +336,8 @@ main = do
       [ env
         (let list = take i (zip (randoms (mkStdGen 0) :: [Int]) [1 ..])
              (!key, _) = list !! (div i 2)
-         in do !elems <- fmap force (fromList list)
-               pure (elems, key))
+          in do !elems <- fmap force (fromList list)
+                pure (elems, key))
         (\(~(elems, key)) ->
            bench (title ++ ":" ++ show i) $ nfIO (func elems key))
       | i <- [10, 100, 1000, 10000, 100000, 1000000]
@@ -352,7 +350,7 @@ main = do
                  (map
                     (first (S8.pack . show))
                     (take i (zip [1 :: Int ..] [1 ..])))
-         in pure elems)
+          in pure elems)
         (\elems -> bench (title ++ ":" ++ show i) $ nf func elems)
       | i <- [10000]
       , FromListBS title func <- funcs
@@ -419,24 +417,6 @@ insertHashTableIOLinear :: Data.HashTable.IO.LinearHashTable Int Int
   -> Int
   -> IO (Data.HashTable.IO.LinearHashTable Int Int)
 insertHashTableIOLinear = insertHashTableIO
-
-insertJudy :: Data.Judy.JudyL Int -> Int -> IO (Data.Judy.JudyL Int)
-insertJudy j n0 = do
-  mapM_ (\n -> Data.Judy.insert (fromIntegral n) n j) [1 .. n0]
-  return j
-
-judyLookup :: Data.Judy.JudyL Int -> Int -> IO (Maybe Int)
-judyLookup j k = Data.Judy.lookup (fromIntegral k) j
-
-intersectionJudy :: Data.Judy.JudyL Int -> Data.Judy.JudyL Int -> IO (Data.Judy.JudyL Int)
-intersectionJudy ij0 ij1 = do
-  j <- Data.Judy.new
-  j0 <- Data.Judy.freeze ij0
-  j0Kvs <- Data.Judy.toList j0
-  mapM_ (\(k,v) ->
-    Data.Judy.member k ij1
-    >>= \found -> when found (Data.Judy.insert k v j)) j0Kvs
-  return j
 
 intersectionHashTableIO :: Data.HashTable.Class.HashTable ht
   => Data.HashTable.IO.IOHashTable ht Int Int

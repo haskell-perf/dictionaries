@@ -12,7 +12,6 @@ import qualified Data.HashMap.Strict
 import qualified Data.HashTable.IO
 import qualified Data.IntMap.Lazy
 import qualified Data.IntMap.Strict
-import qualified Data.Judy
 import qualified Data.Map.Lazy
 import qualified Data.Map.Strict
 import           System.Random
@@ -60,4 +59,3 @@ fromlists =
      io "Data.HashTable.IO.LinearHashTable (1 million)"
           (Data.HashTable.IO.fromList :: [(Int,Int)] -> IO (Data.HashTable.IO.LinearHashTable Int Int))
           elems
-     io "Data.Judy" judyFromList elems
