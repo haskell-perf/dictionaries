@@ -10,7 +10,7 @@ it segfaults the program.
 
 For all benchmarks:
 
-    $ stack bench :space
+    $ stack bench
 
 For just space:
 
