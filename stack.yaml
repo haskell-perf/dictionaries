@@ -1,4 +1,4 @@
-resolver: lts-8.5
+resolver: lts-16.31
 extra-deps:
-  - judy-0.3.0
-  - weigh-0.0.7
+  - judy-0.4.1
+  - bytestring-trie-0.2.5.0@sha256:9efa9c6f556314d28486be2470ff789419c5238ed2e354870623a3cbbd28fbe2,3349
