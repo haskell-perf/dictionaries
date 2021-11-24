@@ -88,6 +88,16 @@ For just time:
 |Data.HashTable.IO.LinearHashTable|262.8 ns|2.503 μs|25.17 μs|309.6 μs|14.84 ms|
 |Data.HashTable.IO.CuckooHashTable|1010 ns|8.765 μs|84.19 μs|901.9 μs|19.21 ms|
 
+## Intersection ByteString (Randomized)
+
+|Name|10|100|1000|10000|100000|1000000|
+|---|---|---|---|---|---|---|
+|Data.Map.Lazy|947.2 ns|11.61 μs|197.5 μs|3.059 ms|46.70 ms|607.7 ms|
+|Data.Map.Strict|1152 ns|15.69 μs|209.6 μs|3.149 ms|41.23 ms|500.9 ms|
+|Data.HashMap.Lazy|533.9 ns|6.898 μs|81.07 μs|1.514 ms|24.18 ms|375.1 ms|
+|Data.HashMap.Strict|648.7 ns|8.636 μs|80.14 μs|1.166 ms|24.13 ms|314.8 ms|
+|Data.Trie|439.6 ns|6.474 μs|73.46 μs|1.755 ms|24.13 ms|245.4 ms|
+
 ## Lookup Int (Randomized)
 
 |Name|10|100|1000|10000|100000|1000000|

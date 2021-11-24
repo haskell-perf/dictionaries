@@ -19,6 +19,7 @@ test-suite space
                , containers
                , unordered-containers
                , bytestring-trie
+               , bytestring
                , random
                , hashtables
 

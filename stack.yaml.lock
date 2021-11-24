@@ -12,12 +12,12 @@ packages:
   original:
     hackage: judy-0.4.1
 - completed:
-    hackage: bytestring-trie-0.2.5.0@sha256:9efa9c6f556314d28486be2470ff789419c5238ed2e354870623a3cbbd28fbe2,3349
+    hackage: bytestring-trie-0.2.6@sha256:ba9907193f2ef0c2bd3d83dbf5a10182d456acb6127d33cc9931d6b55b1a3e0e,4698
     pantry-tree:
-      size: 705
-      sha256: bdc13e00a60830edee41119af62b7203602377ccd81a6555c4fea95b0cb3a252
+      size: 814
+      sha256: bab255b3ec340550f7d4fc1e1ef6a7bc61768288cfdd4620e76640d0b6bc0472
   original:
-    hackage: bytestring-trie-0.2.5.0@sha256:9efa9c6f556314d28486be2470ff789419c5238ed2e354870623a3cbbd28fbe2,3349
+    hackage: bytestring-trie-0.2.6
 snapshots:
 - completed:
     size: 534126
